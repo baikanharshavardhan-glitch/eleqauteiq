@@ -1,0 +1,189 @@
+@import "tailwindcss";
+
+body{
+  margin:0;
+  padding:0;
+  background:#030712;
+}
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-15px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+@keyframes float2 {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(15px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+@keyframes pulseGlow {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.08);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+body {
+  background: #030712;
+  overflow-x: hidden;
+}
+.nav-box {
+  position: relative;
+  overflow: hidden;
+  padding: 12px 22px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(96,165,250,0.25);
+  backdrop-filter: blur(10px);
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.nav-box:hover {
+  box-shadow: 0 0 25px rgba(96,165,250,0.5);
+}
+
+.nav-box::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(96,165,250,0.9),
+    transparent
+  );
+  transform: skewX(-20deg);
+}
+
+.nav-box:hover::before {
+  animation: sweep 0.8s linear;
+}
+
+.login-btn {
+  position: relative;
+  overflow: hidden;
+  padding: 12px 28px;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  color: white;
+  font-weight: 600;
+  background: linear-gradient(
+    135deg,
+    #2563EB,
+    #60A5FA
+  );
+}
+
+.login-btn:hover {
+  box-shadow: 0 0 35px rgba(96,165,250,0.8);
+}
+
+.login-btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,0.9),
+    transparent
+  );
+  transform: skewX(-20deg);
+}
+
+.login-btn:hover::before {
+  animation: sweep 0.8s linear;
+}
+
+@keyframes sweep {
+  from {
+    left: -150%;
+  }
+
+  to {
+    left: 150%;
+  }
+}
+@keyframes rotateSlow {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes rotateReverse {
+  from {
+    transform: rotate(360deg);
+  }
+
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes floatCard {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-12px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+@keyframes rotateSlow {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes rotateReverse {
+  from {
+    transform: rotate(360deg);
+  }
+
+  to {
+    transform: rotate(0deg);
+  }
+}
