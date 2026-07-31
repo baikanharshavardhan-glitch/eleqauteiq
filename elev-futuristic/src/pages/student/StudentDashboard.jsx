@@ -831,7 +831,7 @@ function AIAssistantPage() {
     const apiMessages = updatedMessages.filter((_, i) => i > 0).map(m => ({ role: m.role === "user" ? "user" : "assistant", content: m.text }));
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://https://eleqauteiq-backend.vercel.app/api/ai/chat", {
+      const res = await fetch("https://eleqauteiq-backend.vercel.app", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

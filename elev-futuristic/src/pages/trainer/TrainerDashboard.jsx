@@ -1236,7 +1236,7 @@ function AIPage({ toast }) {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://https://eleqauteiq-backend.vercel.app/api/ai/chat", {
+      const res = await fetch("https://eleqauteiq-backend.vercel.app", {
         method:"POST",
         headers:{ "Content-Type":"application/json", ...(token ? { Authorization:`Bearer ${token}` } : {}) },
         body:JSON.stringify({

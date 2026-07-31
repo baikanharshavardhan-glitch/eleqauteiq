@@ -672,7 +672,7 @@ function AIPage({ toast }) {
     setMsgs(p=>[...p,{role:"user",text:userMsg}]);setLoading(true);
     try{
       const token=localStorage.getItem("token");
-      const res=await fetch("http://https://eleqauteiq-backend.vercel.app/api/ai/chat",{method:"POST",headers:{"Content-Type":"application/json",...(token?{Authorization:`Bearer ${token}`}:{})},body:JSON.stringify({message:userMsg})});
+      const res=await fetch("https://eleqauteiq-backend.vercel.app",{method:"POST",headers:{"Content-Type":"application/json",...(token?{Authorization:`Bearer ${token}`}:{})},body:JSON.stringify({message:userMsg})});
       const data=await res.json();
       setMsgs(p=>[...p,{role:"assistant",text:data.data?.reply||data.message||"Sorry, try again."}]);
     }catch{setMsgs(p=>[...p,{role:"assistant",text:"Connection error. Please try again."}]);}
