@@ -186,7 +186,7 @@ In your React frontend, replace direct API calls like:
 fetch("https://api.anthropic.com/v1/messages", { ... })
 
 // ✅ New (through your backend)
-fetch("http://localhost:5000/api/ai/chat", {
+fetch("http://https://eleqauteiq-backend.vercel.app/api/ai/chat", {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
