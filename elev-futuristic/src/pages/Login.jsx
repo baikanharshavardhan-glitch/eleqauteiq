@@ -120,7 +120,7 @@ export default function Login() {
 
     // ── REAL MODE (when DB is ready) ──────────────────────────────────
     try {
-      const res = await fetch("http://https://eleqauteiq-backend.vercel.app/api/auth/login", {
+      const res = await fetch("https://eleqauteiq-backend.vercel.app", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
