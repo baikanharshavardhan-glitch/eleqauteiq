@@ -74,7 +74,7 @@ function OrbBlobs() {
   );
 }
 
-/* ── 3D Rotating cube — bigger, more dramatic ─────────────────────────────── */
+/* ── 3D Rotating cube ─────────────────────────────────────────────────────── */
 function RotatingCube() {
   const size = 100;
   const faces = [
@@ -87,7 +87,6 @@ function RotatingCube() {
   ];
   return (
     <div style={{ perspective: "800px", width: size * 2, height: size * 2, margin: "0 auto 60px", position: "relative" }}>
-      {/* Outer glow rings */}
       {[260, 200, 150].map((r, i) => (
         <motion.div
           key={i}
@@ -199,7 +198,7 @@ const TAG_COLORS = {
   NEW: { bg: "rgba(34,197,94,0.15)",  color: "#4ade80", border: "rgba(34,197,94,0.5)"  },
 };
 
-/* ── Course card with mag-tilt + flip + shimmer ───────────────────────────── */
+/* ── Course card ──────────────────────────────────────────────────────────── */
 function CourseCard({ course, index, onClick }) {
   const [flipped, setFlipped] = useState(false);
   const [hovered, setHovered] = useState(false);
@@ -254,7 +253,6 @@ function CourseCard({ course, index, onClick }) {
           transition: "box-shadow 0.3s",
           position: "relative", overflow: "hidden",
         }}>
-          {/* Shimmer gradient that follows cursor */}
           <motion.div
             style={{
               position: "absolute", inset: 0, pointerEvents: "none", borderRadius: 22,
@@ -263,20 +261,16 @@ function CourseCard({ course, index, onClick }) {
               ),
             }}
           />
-          {/* Animated corner accent */}
           <motion.div
             animate={{ opacity: hovered ? 1 : 0.4, scale: hovered ? 1.1 : 1 }}
             transition={{ duration: 0.3 }}
             style={{ position: "absolute", top: 0, right: 0, width: 80, height: 80, borderRadius: "0 22px 0 80px", background: `linear-gradient(225deg, ${course.color}18, transparent)`, pointerEvents: "none" }}
           />
-          {/* Animated border pulse */}
           <motion.div
             animate={{ opacity: hovered ? [0.5, 1, 0.5] : 0 }}
             transition={{ duration: 1.5, repeat: Infinity }}
             style={{ position: "absolute", inset: 0, borderRadius: 22, border: `1px solid ${course.color}60`, pointerEvents: "none" }}
           />
-
-          {/* Top row */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", position: "relative", zIndex: 1 }}>
             <motion.span
               animate={{ scale: hovered ? [1, 1.2, 1] : 1, rotate: hovered ? [0, -10, 10, 0] : 0 }}
@@ -296,8 +290,6 @@ function CourseCard({ course, index, onClick }) {
                 }}>{course.tag}</motion.span>
             )}
           </div>
-
-          {/* Name */}
           <div style={{ position: "relative", zIndex: 1 }}>
             <div style={{ color: "#f1f5f9", fontFamily: "'Syne',sans-serif", fontWeight: 700, fontSize: 17, marginBottom: 7 }}>{course.name}</div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -306,8 +298,6 @@ function CourseCard({ course, index, onClick }) {
               <span style={{ color: "#64748b", fontSize: 11.5 }}>{course.level}</span>
             </div>
           </div>
-
-          {/* Price */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", position: "relative", zIndex: 1 }}>
             <motion.span
               animate={{ textShadow: hovered ? `0 0 20px ${course.color}` : "none" }}
@@ -329,7 +319,6 @@ function CourseCard({ course, index, onClick }) {
           boxShadow: `0 0 60px ${course.color}22, inset 0 0 40px ${course.color}08`,
           overflow: "hidden",
         }}>
-          {/* Animated back glow circles */}
           {[100, 70, 45].map((r, i) => (
             <motion.div
               key={i}
@@ -372,7 +361,7 @@ function CourseCard({ course, index, onClick }) {
 }
 
 /* ── Animated counter ─────────────────────────────────────────────────────── */
-function AnimCounter({ target, suffix = "" }) {
+function AnimCounter({ target }) {
   const [count, setCount] = useState(0);
   const raw = parseInt(target.replace(/[^0-9]/g, ""));
   useEffect(() => {
@@ -405,7 +394,6 @@ function HeroOrbits() {
             transform: `translate(-50%,-50%) rotateX(${50 + i * 10}deg)`,
           }}
         >
-          {/* Orbiting dot */}
           <motion.div
             style={{
               position: "absolute", top: -4, left: "50%",
@@ -423,14 +411,82 @@ function HeroOrbits() {
 
 /* ── Payment modal ────────────────────────────────────────────────────────── */
 function CourseModal({ course, onClose }) {
-  const [paid, setPaid] = useState(false);
+  const [step, setStep] = useState(1);
+  const [userInfo, setUserInfo] = useState({ name: "", email: "", phone: "" });
+  const [infoError, setInfoError] = useState("");
   const [method, setMethod] = useState("UPI");
+  const [upiId, setUpiId] = useState("");
+  const [cardInfo, setCardInfo] = useState({ number: "", name: "", expiry: "", cvv: "" });
+  const [bankName, setBankName] = useState("");
+  const [payError, setPayError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [txnId, setTxnId] = useState("");
+
+  const goStep2 = () => {
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userInfo.email.trim());
+    if (!userInfo.name.trim() || !emailOk) {
+      setInfoError("Please enter your full name and a valid email address.");
+      return;
+    }
+    setInfoError("");
+    setStep(2);
+  };
+
+  const fmtCard = (val) => {
+    let v = val.replace(/\D/g, "").substring(0, 16);
+    return v.replace(/(.{4})/g, "$1  ").trim();
+  };
+
+  const fmtExpiry = (val) => {
+    let v = val.replace(/\D/g, "").substring(0, 4);
+    if (v.length >= 3) v = v.substring(0, 2) + " / " + v.substring(2);
+    return v;
+  };
 
   const handlePay = () => {
+    let valid = true;
+    if (method === "UPI") {
+      if (!upiId.trim().includes("@")) valid = false;
+    } else if (method === "Card") {
+      const rawCard = cardInfo.number.replace(/\s/g, "");
+      if (rawCard.length < 16 || !cardInfo.name.trim() || cardInfo.expiry.length < 7 || cardInfo.cvv.length < 3) valid = false;
+    } else if (method === "Net Banking") {
+      if (!bankName.trim()) valid = false;
+    }
+    if (!valid) {
+      setPayError("Please fill in all required payment details.");
+      return;
+    }
+    setPayError("");
     setLoading(true);
-    setTimeout(() => { setLoading(false); setPaid(true); }, 1800);
+    setTimeout(() => {
+      setLoading(false);
+      setTxnId("TXN" + Math.random().toString(36).substring(2, 12).toUpperCase());
+      setStep(3);
+    }, 1800);
   };
+
+  const inputStyle = {
+    width: "100%",
+    background: "rgba(20,30,55,0.8)",
+    border: "1px solid rgba(96,165,250,0.18)",
+    borderRadius: 12,
+    padding: "13px 16px",
+    color: "#f1f5f9",
+    fontSize: 14,
+    outline: "none",
+    fontFamily: "'Syne',sans-serif",
+    marginTop: 6,
+  };
+
+  const labelStyle = {
+    color: "#64748b",
+    fontSize: 11,
+    fontFamily: "'Orbitron',sans-serif",
+    letterSpacing: 1.5,
+  };
+
+  const fieldStyle = { marginBottom: 18 };
 
   return (
     <motion.div
@@ -448,8 +504,8 @@ function CourseModal({ course, onClose }) {
     >
       <motion.div
         initial={{ opacity: 0, scale: 0.75, y: 60, rotateX: 20 }}
-        animate={{ opacity: 1, scale: 1,    y: 0,  rotateX: 0  }}
-        exit={{   opacity: 0, scale: 0.75, y: 60, rotateX: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0, rotateX: 0 }}
+        exit={{ opacity: 0, scale: 0.75, y: 60, rotateX: 20 }}
         transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
         onClick={e => e.stopPropagation()}
         style={{
@@ -464,7 +520,7 @@ function CourseModal({ course, onClose }) {
           transformStyle: "preserve-3d",
         }}
       >
-        {/* Multi-ring spinner system */}
+        {/* Spin rings */}
         <SpinRing size={500} dur={20} color={`${course.color}08`} style={{ top: -100, left: "50%", transform: "translateX(-50%)" }} />
         <SpinRing size={360} dur={14} color={`${course.color}12`} style={{ top: -30, left: "50%", transform: "translateX(-50%)" }} />
         <SpinRing size={220} dur={9}  color={`${course.color}18`} style={{ top: 40,  left: "50%", transform: "translateX(-50%)" }} reverse />
@@ -483,7 +539,7 @@ function CourseModal({ course, onClose }) {
           />
         ))}
 
-        {/* Close */}
+        {/* Close button */}
         <motion.button
           whileHover={{ scale: 1.1, rotate: 90 }}
           whileTap={{ scale: 0.9 }}
@@ -494,206 +550,352 @@ function CourseModal({ course, onClose }) {
             borderRadius: 10, width: 36, height: 36,
             color: "#94a3b8", cursor: "pointer", fontSize: 16,
             display: "flex", alignItems: "center", justifyContent: "center",
-            transition: "all 0.2s",
           }}>✕</motion.button>
 
-        {/* Header */}
-        <div style={{ position: "relative", zIndex: 1, marginBottom: 32 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 18, marginBottom: 14 }}>
-            <motion.span
-              animate={{ filter: [`drop-shadow(0 0 8px ${course.color})`, `drop-shadow(0 0 20px ${course.color})`, `drop-shadow(0 0 8px ${course.color})`] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              style={{ fontSize: 50 }}
-            >{course.icon}</motion.span>
-            <div>
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: "100%" }}
-                transition={{ delay: 0.3, duration: 0.5 }}
-                style={{ color: "#64748b", fontFamily: "'Orbitron',sans-serif", fontSize: 11, letterSpacing: 2.5, marginBottom: 5, overflow: "hidden", whiteSpace: "nowrap" }}
-              >COURSE DETAILS</motion.div>
-              <motion.h2
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2, duration: 0.5 }}
-                style={{ margin: 0, fontFamily: "'Syne',sans-serif", fontSize: 28, fontWeight: 800, color: "#f1f5f9" }}
-              >{course.name}</motion.h2>
-            </div>
-          </div>
-          <motion.div
-            initial={{ scaleX: 0 }}
-            animate={{ scaleX: 1 }}
-            transition={{ delay: 0.4, duration: 0.6 }}
-            style={{ height: 1, background: `linear-gradient(90deg,${course.color}80,transparent)`, transformOrigin: "left" }}
-          />
-        </div>
-
-        {/* Stats grid */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 28, position: "relative", zIndex: 1 }}>
-          {[["⏱", "Duration", course.duration], ["📈", "Level", course.level], ["🛠", "Projects", course.projects]].map(([icon, k, v], i) => (
-            <motion.div
-              key={k}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 + i * 0.1 }}
-              whileHover={{ scale: 1.03, borderColor: `${course.color}66` }}
-              style={{
-                background: "rgba(20,30,55,0.7)",
-                border: `1px solid rgba(96,165,250,0.12)`,
-                borderRadius: 16, padding: "16px 14px",
-                transition: "border-color 0.2s",
-              }}
-            >
-              <div style={{ fontSize: 18, marginBottom: 6 }}>{icon}</div>
-              <div style={{ color: "#475569", fontSize: 10, marginBottom: 4, fontFamily: "'Orbitron',sans-serif", letterSpacing: 1 }}>{k.toUpperCase()}</div>
-              <div style={{ color: "#e2e8f0", fontWeight: 700, fontSize: 13 }}>{v}</div>
-            </motion.div>
+        {/* Step progress bar */}
+        <div style={{ display: "flex", gap: 8, marginBottom: 32, position: "relative", zIndex: 1 }}>
+          {[1, 2, 3].map(s => (
+            <div key={s} style={{
+              flex: 1, height: 3, borderRadius: 99,
+              background: step > s ? "#34d399" : step === s ? course.color : "rgba(96,165,250,0.15)",
+              transition: "background 0.4s",
+            }} />
           ))}
         </div>
 
-        {/* Price row */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.5 }}
-          style={{
-            position: "relative", zIndex: 1, marginBottom: 26,
-            padding: "22px 26px",
-            background: `linear-gradient(135deg, ${course.color}12, rgba(30,41,59,0.4))`,
-            border: `1px solid ${course.color}33`,
-            borderRadius: 18,
-            display: "flex", justifyContent: "space-between", alignItems: "center",
-            overflow: "hidden",
-          }}
-        >
-          <motion.div
-            animate={{ x: [-200, 400] }}
-            transition={{ duration: 3, repeat: Infinity, repeatDelay: 2 }}
-            style={{ position: "absolute", inset: 0, background: `linear-gradient(90deg, transparent, ${course.color}08, transparent)`, pointerEvents: "none" }}
-          />
-          <div style={{ color: "#94a3b8", fontSize: 13 }}>Total Fee</div>
-          <motion.div
-            animate={{ textShadow: [`0 0 8px ${course.color}`, `0 0 24px ${course.color}`, `0 0 8px ${course.color}`] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            style={{ color: course.color, fontFamily: "'Orbitron',sans-serif", fontSize: 30, fontWeight: 700 }}
-          >{course.price}</motion.div>
-        </motion.div>
-
-        {/* Payment method */}
-        <div style={{ position: "relative", zIndex: 1, marginBottom: 22 }}>
-          <div style={{ color: "#475569", fontSize: 11, fontFamily: "'Orbitron',sans-serif", letterSpacing: 2, marginBottom: 12 }}>PAYMENT METHOD</div>
-          <div style={{ display: "flex", gap: 10 }}>
-            {["UPI", "Card", "Net Banking"].map(m => (
-              <motion.button
-                key={m}
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => setMethod(m)}
-                style={{
-                  flex: 1, padding: "12px 0",
-                  background: method === m ? `${course.color}22` : "rgba(20,30,55,0.6)",
-                  border: `1px solid ${method === m ? course.color + "88" : "rgba(96,165,250,0.12)"}`,
-                  borderRadius: 12,
-                  color: method === m ? course.color : "#64748b",
-                  cursor: "pointer", fontSize: 13, fontWeight: method === m ? 700 : 400,
-                  boxShadow: method === m ? `0 0 16px ${course.color}33` : "none",
-                  transition: "all 0.2s",
-                }}>{m}</motion.button>
-            ))}
-          </div>
+        {/* Course chip */}
+        <div style={{
+          display: "inline-flex", alignItems: "center", gap: 10,
+          background: `${course.color}12`, border: `1px solid ${course.color}30`,
+          borderRadius: 12, padding: "8px 16px", marginBottom: 28, position: "relative", zIndex: 1,
+        }}>
+          <span style={{ fontSize: 22 }}>{course.icon}</span>
+          <span style={{ color: course.color, fontSize: 13, fontWeight: 700 }}>{course.name}</span>
+          <span style={{ color: "#475569", fontSize: 12, marginLeft: 4 }}>{course.price}</span>
         </div>
 
-        {/* CTA */}
-        <div style={{ display: "flex", gap: 12, position: "relative", zIndex: 1 }}>
-          <motion.button
-            whileHover={{ scale: 1.02, boxShadow: `0 0 40px ${course.color}66` }}
-            whileTap={{ scale: 0.97 }}
-            onClick={handlePay}
-            disabled={paid || loading}
-            style={{
-              flex: 1, padding: "16px 0",
-              background: paid
-                ? "linear-gradient(135deg,#166534,#15803d)"
-                : `linear-gradient(135deg, ${course.color}cc, ${course.color}88)`,
-              border: "none", borderRadius: 16,
-              color: "white", cursor: paid ? "default" : "pointer",
-              fontSize: 14, fontWeight: 700,
-              fontFamily: "'Syne',sans-serif",
-              boxShadow: `0 0 30px ${course.color}44`,
-              position: "relative", overflow: "hidden",
-              transition: "all 0.3s",
-            }}
+        {/* ── STEP 1: User Info ── */}
+        {step === 1 && (
+          <motion.div
+            key="step1"
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            style={{ position: "relative", zIndex: 1 }}
           >
-            {loading ? (
-              <motion.span
-                animate={{ opacity: [1, 0.5, 1] }}
-                transition={{ duration: 0.8, repeat: Infinity }}
-              >Processing…</motion.span>
-            ) : paid ? "✅ Enrolled!" : "Proceed to Payment →"}
-            {/* Shimmer sweep on button */}
-            {!paid && !loading && (
+            <div style={{ color: "#64748b", fontSize: 11, fontFamily: "'Orbitron',sans-serif", letterSpacing: 2, marginBottom: 6 }}>STEP 1 OF 3</div>
+            <div style={{ color: "#f1f5f9", fontSize: 22, fontWeight: 700, marginBottom: 28, fontFamily: "'Syne',sans-serif" }}>Your Details</div>
+
+            <div style={fieldStyle}>
+              <label style={labelStyle}>FULL NAME *</label>
+              <input
+                style={inputStyle}
+                placeholder="e.g. Riya Sharma"
+                value={userInfo.name}
+                onChange={e => setUserInfo({ ...userInfo, name: e.target.value })}
+              />
+            </div>
+
+            <div style={fieldStyle}>
+              <label style={labelStyle}>EMAIL ADDRESS *</label>
+              <input
+                style={inputStyle}
+                type="email"
+                placeholder="e.g. riya@gmail.com"
+                value={userInfo.email}
+                onChange={e => setUserInfo({ ...userInfo, email: e.target.value })}
+              />
+            </div>
+
+            <div style={fieldStyle}>
+              <label style={labelStyle}>PHONE NUMBER (OPTIONAL)</label>
+              <input
+                style={inputStyle}
+                type="tel"
+                placeholder="+91 98765 43210"
+                value={userInfo.phone}
+                onChange={e => setUserInfo({ ...userInfo, phone: e.target.value })}
+              />
+            </div>
+
+            {infoError && (
+              <div style={{ color: "#f87171", fontSize: 12, marginBottom: 14 }}>{infoError}</div>
+            )}
+
+            <motion.button
+              whileHover={{ scale: 1.02, boxShadow: `0 0 30px ${course.color}55` }}
+              whileTap={{ scale: 0.97 }}
+              onClick={goStep2}
+              style={{
+                width: "100%", padding: "16px 0",
+                background: `linear-gradient(135deg, ${course.color}cc, ${course.color}88)`,
+                border: "none", borderRadius: 16,
+                color: "white", cursor: "pointer",
+                fontSize: 14, fontWeight: 700,
+                fontFamily: "'Syne',sans-serif",
+              }}
+            >Continue to Payment →</motion.button>
+          </motion.div>
+        )}
+
+        {/* ── STEP 2: Payment ── */}
+        {step === 2 && (
+          <motion.div
+            key="step2"
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            style={{ position: "relative", zIndex: 1 }}
+          >
+            <div style={{ color: "#64748b", fontSize: 11, fontFamily: "'Orbitron',sans-serif", letterSpacing: 2, marginBottom: 6 }}>STEP 2 OF 3</div>
+            <div style={{ color: "#f1f5f9", fontSize: 22, fontWeight: 700, marginBottom: 24, fontFamily: "'Syne',sans-serif" }}>Payment</div>
+
+            {/* Price box */}
+            <div style={{
+              background: `linear-gradient(135deg, ${course.color}12, rgba(30,41,59,0.4))`,
+              border: `1px solid ${course.color}33`,
+              borderRadius: 18, padding: "18px 22px",
+              display: "flex", justifyContent: "space-between", alignItems: "center",
+              marginBottom: 24, overflow: "hidden", position: "relative",
+            }}>
               <motion.div
                 animate={{ x: [-200, 400] }}
-                transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 1 }}
-                style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent)", pointerEvents: "none" }}
+                transition={{ duration: 3, repeat: Infinity, repeatDelay: 2 }}
+                style={{ position: "absolute", inset: 0, background: `linear-gradient(90deg,transparent,${course.color}08,transparent)`, pointerEvents: "none" }}
               />
-            )}
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={onClose}
-            style={{
-              padding: "16px 22px",
-              background: "rgba(20,30,55,0.7)",
-              border: "1px solid rgba(96,165,250,0.15)",
-              borderRadius: 16, color: "#94a3b8",
-              cursor: "pointer", fontSize: 14,
-            }}
-          >Cancel</motion.button>
-        </div>
-
-        {/* Success */}
-        <AnimatePresence>
-          {paid && (
-            <motion.div
-              initial={{ opacity: 0, y: 20, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0,  scale: 1   }}
-              style={{
-                marginTop: 20, position: "relative", zIndex: 1,
-                padding: "20px 24px",
-                background: "rgba(21,128,61,0.12)",
-                border: "1px solid rgba(34,197,94,0.5)",
-                borderRadius: 16,
-                display: "flex", alignItems: "center", gap: 14,
-                overflow: "hidden",
-              }}
-            >
+              <div style={{ color: "#94a3b8", fontSize: 13 }}>Total Fee</div>
               <motion.div
-                animate={{ x: [-300, 600] }}
-                transition={{ duration: 2, repeat: Infinity, repeatDelay: 1.5 }}
-                style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg,transparent,rgba(34,197,94,0.08),transparent)", pointerEvents: "none" }}
-              />
-              <motion.span
-                animate={{ scale: [1, 1.3, 1], rotate: [0, 10, -10, 0] }}
-                transition={{ duration: 0.6 }}
-                style={{ fontSize: 26 }}
-              >✅</motion.span>
-              <div>
-                <div style={{ color: "#4ade80", fontWeight: 700, fontSize: 16 }}>Payment Successful!</div>
-                <div style={{ color: "#86efac", fontSize: 12, marginTop: 3 }}>
-                  You're enrolled in <strong>{course.name}</strong>. Check your email for details.
+                animate={{ textShadow: [`0 0 8px ${course.color}`, `0 0 24px ${course.color}`, `0 0 8px ${course.color}`] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                style={{ color: course.color, fontFamily: "'Orbitron',sans-serif", fontSize: 28, fontWeight: 700 }}
+              >{course.price}</motion.div>
+            </div>
+
+            {/* Method tabs */}
+            <div style={{ color: "#475569", fontSize: 11, fontFamily: "'Orbitron',sans-serif", letterSpacing: 2, marginBottom: 12 }}>PAYMENT METHOD</div>
+            <div style={{ display: "flex", gap: 10, marginBottom: 24 }}>
+              {["UPI", "Card", "Net Banking"].map(m => (
+                <motion.button
+                  key={m}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => { setMethod(m); setPayError(""); }}
+                  style={{
+                    flex: 1, padding: "12px 0",
+                    background: method === m ? `${course.color}22` : "rgba(20,30,55,0.6)",
+                    border: `1px solid ${method === m ? course.color + "88" : "rgba(96,165,250,0.12)"}`,
+                    borderRadius: 12,
+                    color: method === m ? course.color : "#64748b",
+                    cursor: "pointer", fontSize: 13, fontWeight: method === m ? 700 : 400,
+                    fontFamily: "'Syne',sans-serif",
+                    boxShadow: method === m ? `0 0 16px ${course.color}33` : "none",
+                    transition: "all 0.2s",
+                  }}
+                >{m}</motion.button>
+              ))}
+            </div>
+
+            {/* UPI */}
+            {method === "UPI" && (
+              <div style={fieldStyle}>
+                <label style={labelStyle}>UPI ID *</label>
+                <input
+                  style={inputStyle}
+                  placeholder="yourname@upi"
+                  value={upiId}
+                  onChange={e => setUpiId(e.target.value)}
+                />
+                <div style={{ color: "#475569", fontSize: 12, marginTop: 8 }}>
+                  You'll receive a payment request on your UPI app within 60 seconds.
                 </div>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            )}
+
+            {/* Card */}
+            {method === "Card" && (
+              <>
+                <div style={fieldStyle}>
+                  <label style={labelStyle}>CARD NUMBER *</label>
+                  <input
+                    style={inputStyle}
+                    placeholder="1234  5678  9012  3456"
+                    maxLength={19}
+                    value={cardInfo.number}
+                    onChange={e => setCardInfo({ ...cardInfo, number: fmtCard(e.target.value) })}
+                  />
+                </div>
+                <div style={fieldStyle}>
+                  <label style={labelStyle}>NAME ON CARD *</label>
+                  <input
+                    style={inputStyle}
+                    placeholder="As printed on card"
+                    value={cardInfo.name}
+                    onChange={e => setCardInfo({ ...cardInfo, name: e.target.value })}
+                  />
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                  <div style={fieldStyle}>
+                    <label style={labelStyle}>EXPIRY DATE *</label>
+                    <input
+                      style={inputStyle}
+                      placeholder="MM / YY"
+                      maxLength={7}
+                      value={cardInfo.expiry}
+                      onChange={e => setCardInfo({ ...cardInfo, expiry: fmtExpiry(e.target.value) })}
+                    />
+                  </div>
+                  <div style={fieldStyle}>
+                    <label style={labelStyle}>CVV *</label>
+                    <input
+                      style={{ ...inputStyle, letterSpacing: 4 }}
+                      type="password"
+                      placeholder="•••"
+                      maxLength={4}
+                      value={cardInfo.cvv}
+                      onChange={e => setCardInfo({ ...cardInfo, cvv: e.target.value.replace(/\D/g, "") })}
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Net Banking */}
+            {method === "Net Banking" && (
+              <div style={fieldStyle}>
+                <label style={labelStyle}>BANK NAME *</label>
+                <input
+                  style={inputStyle}
+                  placeholder="e.g. SBI, HDFC, ICICI..."
+                  value={bankName}
+                  onChange={e => setBankName(e.target.value)}
+                />
+                <div style={{ color: "#475569", fontSize: 12, marginTop: 8 }}>
+                  You'll be redirected to your bank's secure portal to complete payment.
+                </div>
+              </div>
+            )}
+
+            {payError && (
+              <div style={{ color: "#f87171", fontSize: 12, marginBottom: 14 }}>{payError}</div>
+            )}
+
+            <div style={{ display: "flex", gap: 12 }}>
+              <motion.button
+                whileHover={{ scale: 1.02, boxShadow: `0 0 40px ${course.color}66` }}
+                whileTap={{ scale: 0.97 }}
+                onClick={handlePay}
+                disabled={loading}
+                style={{
+                  flex: 1, padding: "16px 0",
+                  background: `linear-gradient(135deg, ${course.color}cc, ${course.color}88)`,
+                  border: "none", borderRadius: 16,
+                  color: "white", cursor: loading ? "not-allowed" : "pointer",
+                  fontSize: 14, fontWeight: 700,
+                  fontFamily: "'Syne',sans-serif",
+                  opacity: loading ? 0.7 : 1,
+                  position: "relative", overflow: "hidden",
+                  transition: "all 0.3s",
+                }}
+              >
+                {loading ? (
+                  <motion.span animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 0.8, repeat: Infinity }}>
+                    Processing…
+                  </motion.span>
+                ) : `Pay ${course.price} →`}
+                {!loading && (
+                  <motion.div
+                    animate={{ x: [-200, 400] }}
+                    transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 1 }}
+                    style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent)", pointerEvents: "none" }}
+                  />
+                )}
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => setStep(1)}
+                style={{
+                  padding: "16px 22px",
+                  background: "rgba(20,30,55,0.7)",
+                  border: "1px solid rgba(96,165,250,0.15)",
+                  borderRadius: 16, color: "#94a3b8",
+                  cursor: "pointer", fontSize: 14,
+                }}
+              >← Back</motion.button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ── STEP 3: Success ── */}
+        {step === 3 && (
+          <motion.div
+            key="step3"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            style={{ position: "relative", zIndex: 1, textAlign: "center" }}
+          >
+            <motion.div
+              animate={{ scale: [1, 1.3, 1], rotate: [0, 10, -10, 0] }}
+              transition={{ duration: 0.6 }}
+              style={{ fontSize: 60, marginBottom: 16 }}
+            >✅</motion.div>
+            <div style={{ color: "#4ade80", fontSize: 24, fontWeight: 700, marginBottom: 8, fontFamily: "'Syne',sans-serif" }}>
+              Payment Successful!
+            </div>
+            <div style={{ color: "#86efac", fontSize: 14, marginBottom: 28 }}>
+              Welcome aboard, {userInfo.name.split(" ")[0]}! Check <strong>{userInfo.email}</strong> for your enrollment details.
+            </div>
+
+            {/* Receipt */}
+            <div style={{
+              background: "rgba(21,128,61,0.1)",
+              border: "1px solid rgba(34,197,94,0.3)",
+              borderRadius: 18, padding: "22px 24px",
+              textAlign: "left", marginBottom: 20,
+            }}>
+              <div style={{ color: "#475569", fontSize: 11, fontFamily: "'Orbitron',sans-serif", letterSpacing: 2, marginBottom: 16 }}>
+                ENROLLMENT RECEIPT
+              </div>
+              {[
+                ["Student", userInfo.name],
+                ["Email", userInfo.email],
+                ...(userInfo.phone ? [["Phone", userInfo.phone]] : []),
+                ["Course", course.name],
+                ["Method", method],
+                ["Amount Paid", course.price],
+                ["Transaction ID", txnId],
+              ].map(([k, v]) => (
+                <div key={k} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "7px 0", borderBottom: "1px solid rgba(34,197,94,0.08)", fontSize: 13 }}>
+                  <span style={{ color: "#475569" }}>{k}</span>
+                  <span style={{
+                    color: k === "Amount Paid" ? "#4ade80" : k === "Transaction ID" ? "#64748b" : "#e2e8f0",
+                    fontWeight: k === "Amount Paid" ? 700 : 400,
+                    fontSize: k === "Transaction ID" ? 11 : 13,
+                    wordBreak: "break-all", maxWidth: "60%", textAlign: "right",
+                  }}>{v}</span>
+                </div>
+              ))}
+            </div>
+
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={onClose}
+              style={{
+                width: "100%", padding: "14px 0",
+                background: "rgba(20,30,55,0.8)",
+                border: "1px solid rgba(96,165,250,0.2)",
+                borderRadius: 14, color: "#94a3b8",
+                cursor: "pointer", fontSize: 14,
+                fontFamily: "'Syne',sans-serif",
+              }}
+            >Close</motion.button>
+          </motion.div>
+        )}
       </motion.div>
     </motion.div>
   );
 }
 
-/* ── Filter button with animated selection indicator ─────────────────────── */
+/* ── Filter button ────────────────────────────────────────────────────────── */
 function FilterBtn({ label, active, onClick }) {
   return (
     <motion.button
@@ -729,7 +931,7 @@ function FilterBtn({ label, active, onClick }) {
   );
 }
 
-/* ── Stats strip with counters ────────────────────────────────────────────── */
+/* ── Stats strip ──────────────────────────────────────────────────────────── */
 function StatsStrip() {
   const stats = [
     ["12+", "Courses Available"],
@@ -750,7 +952,6 @@ function StatsStrip() {
         position: "relative",
       }}
     >
-      {/* Scanning light */}
       <motion.div
         animate={{ x: ["-100%", "200%"] }}
         transition={{ duration: 4, repeat: Infinity, repeatDelay: 3, ease: "easeInOut" }}
@@ -811,11 +1012,10 @@ export default function CourseGalaxy() {
 
       <div style={{ position: "relative", zIndex: 1, maxWidth: 1200, margin: "0 auto", padding: "80px 32px 80px" }}>
 
-        {/* ── Hero ── */}
+        {/* Hero */}
         <div style={{ textAlign: "center", marginBottom: 68, position: "relative" }}>
           <HeroOrbits />
           <RotatingCube />
-
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -851,7 +1051,6 @@ export default function CourseGalaxy() {
               Hover any card to flip it. Click to enroll. Every course ships with real projects.
             </motion.p>
 
-            {/* Animated divider */}
             <motion.div
               initial={{ scaleX: 0 }}
               animate={{ scaleX: 1 }}
@@ -861,7 +1060,7 @@ export default function CourseGalaxy() {
           </motion.div>
         </div>
 
-        {/* ── Filters ── */}
+        {/* Filters */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -873,7 +1072,7 @@ export default function CourseGalaxy() {
           ))}
         </motion.div>
 
-        {/* ── Grid ── */}
+        {/* Grid */}
         <motion.div
           layout
           style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(265px,1fr))", gap: 22 }}
@@ -888,7 +1087,7 @@ export default function CourseGalaxy() {
         <StatsStrip />
       </div>
 
-      {/* ── Modal ── */}
+      {/* Modal */}
       <AnimatePresence>
         {selected && <CourseModal course={selected} onClose={() => setSelected(null)} />}
       </AnimatePresence>

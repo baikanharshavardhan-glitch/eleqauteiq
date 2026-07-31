@@ -329,6 +329,7 @@ function DetailModal({ person, type, attendanceLogs, onClose }) {
 function AddEmployeePage({ onAdd, onBack, toast }) {
   const [form, setForm] = useState({
     name:"", dob:"", phone:"", email:"", dept:"Engineering", role:"", status:"Active",
+    joining_date:"", password:"", confirm_password:"",
     bank_account:"", bank_ifsc:"", bank_name:"", bank_branch:"",
     pay_basic:"", pay_hra:"", pay_ta:"", pay_medical:"", pay_pf:"", pay_tax:"",
   });
@@ -336,8 +337,14 @@ function AddEmployeePage({ onAdd, onBack, toast }) {
   const inputStyle = { width:"100%", background:"#1e293b", border:"1px solid #334155", borderRadius:8, color:"#e2e8f0", padding:"10px 12px", fontSize:13, boxSizing:"border-box", outline:"none" };
   const labelStyle = { color:"#64748b", fontSize:12, display:"block", marginBottom:4 };
   const submit = () => {
-    if (!form.name || !form.dob || !form.phone || !form.email || !form.role) {
+    if (!form.name || !form.dob || !form.phone || !form.email || !form.role || !form.joining_date) {
       toast("Please fill in all required fields", "error"); return;
+    }
+    if (!form.password || form.password.length < 6) {
+      toast("Password must be at least 6 characters", "error"); return;
+    }
+    if (form.password !== form.confirm_password) {
+      toast("Passwords do not match", "error"); return;
     }
     const newId = `EMP-${2100 + Math.floor(Math.random() * 900)}`;
     const newEmp = {
@@ -393,6 +400,14 @@ function AddEmployeePage({ onAdd, onBack, toast }) {
               <ChevronDown size={14} style={{ position:"absolute",right:10,top:"50%",transform:"translateY(-50%)",color:"#64748b",pointerEvents:"none" }}/>
             </div>
           </div>
+          <div><label style={labelStyle}>Joining Date *</label><input type="date" style={inputStyle} value={form.joining_date} onChange={e=>set("joining_date",e.target.value)}/></div>
+        </div>
+      </div>
+      <div style={{ background:"#0f172a",border:"1px solid #1e293b",borderRadius:14,padding:24,marginBottom:16 }}>
+        <div style={{ color:"#22d3ee",fontSize:13,fontWeight:700,marginBottom:16,display:"flex",alignItems:"center",gap:8 }}><Shield size={14}/>Account Password</div>
+        <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:14 }}>
+          <div><label style={labelStyle}>Password *</label><input type="password" style={inputStyle} placeholder="Min. 6 characters" value={form.password} onChange={e=>set("password",e.target.value)}/></div>
+          <div><label style={labelStyle}>Confirm Password *</label><input type="password" style={inputStyle} placeholder="Re-enter password" value={form.confirm_password} onChange={e=>set("confirm_password",e.target.value)}/></div>
         </div>
       </div>
       <div style={{ background:"#0f172a",border:"1px solid #1e293b",borderRadius:14,padding:24,marginBottom:16 }}>
@@ -423,6 +438,7 @@ function AddEmployeePage({ onAdd, onBack, toast }) {
 function AddStudentPage({ onAdd, onBack, toast }) {
   const [form, setForm] = useState({
     name:"", dob:"", phone:"", email:"", course:"React Advanced", batch:"B-12", status:"Active",
+    password:"", confirm_password:"",
   });
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
   const inputStyle = { width:"100%", background:"#1e293b", border:"1px solid #334155", borderRadius:8, color:"#e2e8f0", padding:"10px 12px", fontSize:13, boxSizing:"border-box", outline:"none" };
@@ -430,6 +446,12 @@ function AddStudentPage({ onAdd, onBack, toast }) {
   const submit = () => {
     if (!form.name || !form.dob || !form.phone || !form.email) {
       toast("Please fill in all required fields", "error"); return;
+    }
+    if (!form.password || form.password.length < 6) {
+      toast("Password must be at least 6 characters", "error"); return;
+    }
+    if (form.password !== form.confirm_password) {
+      toast("Passwords do not match", "error"); return;
     }
     const newId = `STU-${1100 + Math.floor(Math.random() * 900)}`;
     onAdd({ id: newId, name: form.name, dob: form.dob, phone: form.phone, email: form.email, course: form.course, batch: form.batch, status: form.status, avatar: form.name[0].toUpperCase() });
@@ -481,6 +503,13 @@ function AddStudentPage({ onAdd, onBack, toast }) {
               <ChevronDown size={14} style={{ position:"absolute",right:10,top:"50%",transform:"translateY(-50%)",color:"#64748b",pointerEvents:"none" }}/>
             </div>
           </div>
+        </div>
+      </div>
+      <div style={{ background:"#0f172a",border:"1px solid #1e293b",borderRadius:14,padding:24,marginBottom:24 }}>
+        <div style={{ color:"#a78bfa",fontSize:13,fontWeight:700,marginBottom:16,display:"flex",alignItems:"center",gap:8 }}><Shield size={14}/>Account Password</div>
+        <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:14 }}>
+          <div><label style={labelStyle}>Password *</label><input type="password" style={inputStyle} placeholder="Min. 6 characters" value={form.password} onChange={e=>set("password",e.target.value)}/></div>
+          <div><label style={labelStyle}>Confirm Password *</label><input type="password" style={inputStyle} placeholder="Re-enter password" value={form.confirm_password} onChange={e=>set("confirm_password",e.target.value)}/></div>
         </div>
       </div>
       <div style={{ display:"flex",gap:12 }}>
@@ -910,6 +939,15 @@ function EmployeesPage({ employees, setPage, attendanceLogs }) {
             {depts.map(d=>(
               <button key={d} onClick={()=>setFilter(d)} style={{ background:filter===d?"#1d4ed8":"#1e293b",color:filter===d?"#fff":"#94a3b8",border:"none",borderRadius:8,padding:"6px 14px",fontSize:12,cursor:"pointer" }}>{d}</button>
             ))}
+            <button onClick={()=>{
+              downloadExcel(
+                filtered.map(e=>[e.id,e.name,e.dob||"",e.phone,e.email,e.dept,e.role,e.status,e.bank?.bank||"",e.bank?.account||"",e.bank?.ifsc||"",e.bank?.branch||""]),
+                ["Emp ID","Full Name","Date of Birth","Phone","Email","Department","Role","Status","Bank Name","Account No","IFSC Code","Branch"],
+                `Employees_${filter}_${new Date().toISOString().slice(0,10)}.csv`
+              );
+            }} style={{ background:"#1e293b",color:"#22d3ee",border:"1px solid #22d3ee33",borderRadius:8,padding:"7px 14px",fontSize:12,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:6 }}>
+              <Download size={13}/>Export Excel
+            </button>
             <button onClick={()=>setPage("add_employee")} style={{ background:"linear-gradient(135deg,#16a34a,#0891b2)",color:"#fff",border:"none",borderRadius:8,padding:"7px 14px",fontSize:12,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:6 }}>
               <Plus size={14}/>Add New Employee
             </button>
@@ -975,6 +1013,15 @@ function StudentsPage({ students, setPage }) {
             {batches.map(b=>(
               <button key={b} onClick={()=>setFilter(b)} style={{ background:filter===b?"#7c3aed":"#1e293b",color:filter===b?"#fff":"#94a3b8",border:"none",borderRadius:8,padding:"6px 14px",fontSize:12,cursor:"pointer" }}>{b}</button>
             ))}
+            <button onClick={()=>{
+              downloadExcel(
+                filtered.map(s=>[s.id,s.name,s.dob||"",s.phone,s.email,s.course,s.batch,s.status]),
+                ["Student ID","Full Name","Date of Birth","Phone","Email","Course","Batch","Status"],
+                `Students_${filter}_${new Date().toISOString().slice(0,10)}.csv`
+              );
+            }} style={{ background:"#1e293b",color:"#a78bfa",border:"1px solid #a78bfa33",borderRadius:8,padding:"7px 14px",fontSize:12,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:6 }}>
+              <Download size={13}/>Export Excel
+            </button>
             <button onClick={()=>setPage("add_student")} style={{ background:"linear-gradient(135deg,#7c3aed,#a78bfa)",color:"#fff",border:"none",borderRadius:8,padding:"7px 14px",fontSize:12,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:6 }}>
               <Plus size={14}/>Enroll Student
             </button>
@@ -1027,6 +1074,24 @@ function StudentsPage({ students, setPage }) {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// EXCEL DOWNLOAD UTILITY (no external lib — pure CSV with .xlsx extension)
+// ═══════════════════════════════════════════════════════════════
+function downloadExcel(rows, headers, filename) {
+  // Build a real tab-separated values blob that Excel opens natively
+  const escape = v => {
+    const s = String(v ?? "");
+    return s.includes(",") || s.includes('"') || s.includes("\n")
+      ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const lines = [headers.map(escape).join(","), ...rows.map(r => r.map(escape).join(","))];
+  const csv = "\uFEFF" + lines.join("\r\n"); // BOM for Excel UTF-8
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
 // PAGE: PAYROLL — with month selector
 // ═══════════════════════════════════════════════════════════════
 function PayrollPage({ toast, employees }) {
@@ -1111,7 +1176,14 @@ function PayrollPage({ toast, employees }) {
             <div style={{ color:"#4ade80",fontSize:13,fontWeight:700 }}>{fmt(e.net)}</div>
             <div style={{ display:"flex",gap:6 }}>
               <button onClick={()=>setSelected(e)} style={{ background:"#1e293b",color:"#22d3ee",border:"none",borderRadius:7,padding:"6px 8px",fontSize:11,cursor:"pointer",display:"flex",alignItems:"center",gap:4 }}><Eye size={11}/>View</button>
-              <button onClick={()=>toast(`Payslip downloaded for ${e.name} — ${currentMonthLabel}`)} style={{ background:"#1e293b",color:"#60a5fa",border:"none",borderRadius:7,padding:"6px 8px",fontSize:11,cursor:"pointer",display:"flex",alignItems:"center" }}><Download size={11}/></button>
+              <button onClick={()=>{
+                downloadExcel(
+                  [[e.id,e.name,e.dept,e.role,currentMonthLabel,e.pay.basic,e.pay.hra,e.pay.ta,e.pay.medical,e.gross,e.pay.pf,e.pay.tax,e.pay.other,e.deductions,e.net,"Paid"]],
+                  ["Emp ID","Name","Department","Role","Month","Basic","HRA","Travel Allow","Medical Allow","Gross Earnings","PF","Income Tax","Other Deductions","Total Deductions","Net Pay","Status"],
+                  `Payslip_${e.name.replace(/\s+/g,"_")}_${currentMonthLabel.replace(/\s+/g,"_")}.csv`
+                );
+                toast(`Payslip downloaded for ${e.name} — ${currentMonthLabel}`);
+              }} style={{ background:"#1e293b",color:"#60a5fa",border:"none",borderRadius:7,padding:"6px 8px",fontSize:11,cursor:"pointer",display:"flex",alignItems:"center" }}><Download size={11}/></button>
             </div>
           </div>
         ))}
@@ -1164,7 +1236,14 @@ function PayrollPage({ toast, employees }) {
                 <span style={{ color:"#4ade80",fontSize:18,fontWeight:700 }}>{fmt(selected.net)}</span>
               </div>
             </div>
-            <button onClick={()=>toast(`Payslip downloaded for ${selected.name} — ${currentMonthLabel}`)} style={{ marginTop:16,background:"linear-gradient(135deg,#16a34a,#0891b2)",color:"#fff",border:"none",borderRadius:10,padding:"10px 20px",fontSize:13,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:8,width:"100%",justifyContent:"center" }}>
+            <button onClick={()=>{
+              downloadExcel(
+                [[selected.id,selected.name,selected.dept,selected.role,currentMonthLabel,selected.pay.basic,selected.pay.hra,selected.pay.ta,selected.pay.medical,selected.gross,selected.pay.pf,selected.pay.tax,selected.pay.other,selected.deductions,selected.net,"Paid"]],
+                ["Emp ID","Name","Department","Role","Month","Basic","HRA","Travel Allow","Medical Allow","Gross Earnings","PF","Income Tax","Other Deductions","Total Deductions","Net Pay","Status"],
+                `Payslip_${selected.name.replace(/\s+/g,"_")}_${currentMonthLabel.replace(/\s+/g,"_")}.csv`
+              );
+              toast(`Payslip downloaded for ${selected.name} — ${currentMonthLabel}`);
+            }} style={{ marginTop:16,background:"linear-gradient(135deg,#16a34a,#0891b2)",color:"#fff",border:"none",borderRadius:10,padding:"10px 20px",fontSize:13,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:8,width:"100%",justifyContent:"center" }}>
               <Download size={14}/>Download Payslip — {currentMonthLabel}
             </button>
           </div>
