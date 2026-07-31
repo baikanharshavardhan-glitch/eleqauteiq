@@ -71,7 +71,7 @@ export default function Signup() {
 
     setLoading(true); setStatus(null);
     try {
-      const res  = await fetch("http://https://eleqauteiq-backend.vercel.app/api/auth/register", {
+      const res  = await fetch("http://eleqauteiq-backend.vercel.app/api/auth/register", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify({
