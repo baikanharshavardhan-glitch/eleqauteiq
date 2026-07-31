@@ -18,7 +18,7 @@ export default function BackendStatus() {
 
   const checkBackend = async () => {
     try {
-      const res  = await fetch("http://localhost:5000/api/health");
+      const res  = await fetch("http://https://eleqauteiq-backend.vercel.app/api/health");
       const data = await res.json();
       if (data.status === "ok") {
         setStatus("✅ Backend Connected!");
@@ -35,7 +35,7 @@ export default function BackendStatus() {
     const results = await Promise.all(
       apis.map(async (api) => {
         try {
-          const res = await fetch(`http://localhost:5000${api.url}`);
+          const res = await fetch(`http://https://eleqauteiq-backend.vercel.app${api.url}`);
           // Any response means server is reachable
           return { ...api, status: res.status < 500 ? "reachable" : "error" };
         } catch {
@@ -80,7 +80,7 @@ export default function BackendStatus() {
             </div>
           )}
           <div style={{ color: "#64748b", fontSize: 12, marginTop: 4 }}>
-            URL: http://localhost:5000
+            URL: http://https://eleqauteiq-backend.vercel.app
           </div>
         </div>
 
